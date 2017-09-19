@@ -1,0 +1,58 @@
+==============================================================================
+  media_conv_h264
+  参考手順
+
+  Copyright (c) 2017 Yukio Shiiya
+
+  This software is released under the MIT License.
+  https://opensource.org/licenses/MIT
+==============================================================================
+
+------------------------------------------------------------------------------
+■変数定義 (media_conv_h264_wrapper.sh 用)
+# 処理を実行しない場合 (コマンドラインの表示のみ)
+MEDIA_CONV_H264_WRAPPER_OPTIONS="-v -n"
+
+# 処理を実行する場合
+MEDIA_CONV_H264_WRAPPER_OPTIONS="-v"
+
+■変数定義 (media_conv_h264.sh 用)
+# テストエンコードの場合 (コマンドラインの表示のみ)
+MEDIA_CONV_H264_OPTIONS="-v --ffg=\"-hide_banner -y\" --ffi=\"-t 15\" -n"
+
+# テストエンコードの場合
+MEDIA_CONV_H264_OPTIONS="-v --ffg=\"-hide_banner -y\" --ffi=\"-t 15\""
+
+# 本番エンコードの場合
+MEDIA_CONV_H264_OPTIONS="-v --ffg=\"-hide_banner\""
+
+# 音量正規化(ノーマライズ)を行う場合
+MEDIA_CONV_H264_OPTIONS="${MEDIA_CONV_H264_OPTIONS} --afilter=\"dynaudnorm\""
+
+■関数定義
+media_conv() {
+  media_conv_h264_wrapper.sh conv ${MEDIA_CONV_H264_WRAPPER_OPTIONS} --media_conv_h264_options="${MEDIA_CONV_H264_OPTIONS}" "$@"
+}
+
+■単一動画ファイル変換用コマンドラインの生成
+media_conv_h264_wrapper.sh info --no-header "動画ファイル名" \
+  | sed 's#^#media_conv #'
+
+■複数動画ファイル変換用コマンドラインの生成
+ls -1F -tr \
+  | sed 's#\*$##' \
+  | grep -v -e '/$' -e '\.mkv$' \
+  | while read SRC_FILE; do media_conv_h264_wrapper.sh info --no-header "${SRC_FILE}"; done \
+  | sed 's#^#media_conv #'
+
+■複数動画ファイル変換後情報の表示
+# 変換後情報の一覧
+media_conv_h264_wrapper.sh info *.mkv
+
+# 変換前・変換後情報の比較
+for dest_file in *.mkv ; do
+  src_file="${dest_file%.mkv}"
+  media_conv_h264_wrapper.sh info "${src_file}" "${dest_file}"
+  echo
+done
+
