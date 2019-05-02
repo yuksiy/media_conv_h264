@@ -99,7 +99,7 @@ MEDIA_INFO() {
 	fi
 
 	HDR="VMAP"                  ; FMT="%-4s"
-	HDR="${HDR} AMAP"           ; FMT="${FMT} %-4s"
+	HDR="${HDR} AMAP"           ; FMT="${FMT} %-5s"
 	HDR="${HDR} DAR_S"          ; FMT="${FMT} %-6s" ; INFORM_1="Video;%DisplayAspectRatio/String%"
 	HDR="${HDR} DAR"            ; FMT="${FMT} %5s"  ; INFORM_1="${INFORM_1} %DisplayAspectRatio%"
 	HDR="${HDR} PAR"            ; FMT="${FMT} %5s"  ; INFORM_1="${INFORM_1} %PixelAspectRatio%"
@@ -133,12 +133,17 @@ MEDIA_INFO() {
 			continue
 		fi
 		VMAP="0:$("${FFPROBE}" -v error -of default=nk=1:nw=1 -select_streams v:0 -show_entries "stream=index" "${SRC_FILE}" | dos2unix | head -1)"
-		AMAP="0:$("${FFPROBE}" -v error -of default=nk=1:nw=1 -select_streams a:0 -show_entries "stream=index" "${SRC_FILE}" | dos2unix | head -1)"
+		AMAP="$("${FFPROBE}" -v error -of default=nk=1:nw=1 -select_streams a:0 -show_entries "stream=index" "${SRC_FILE}" | dos2unix | head -1)"
+		AMAP="${AMAP:+0:${AMAP}}"
 		MEDIA_INFO_1="$("${MEDIAINFO}" --Inform="${INFORM_1}" "${SRC_FILE}" 2>&1 | dos2unix | grep -v 'E: File read error' | head -1)"
 		FIELD_ORDER="$("${FFPROBE}" -v error -of default=nk=1:nw=1 -select_streams v:0 -show_entries "stream=field_order" "${SRC_FILE}" | dos2unix | head -1)"
 		MEDIA_INFO_2="$("${MEDIAINFO}" --Inform="${INFORM_2}" "${SRC_FILE}" 2>&1 | dos2unix | grep -v 'E: File read error' | head -1)"
-		MEDIA_INFO_3="$("${MEDIAINFO}" --Inform="${INFORM_3}" "${SRC_FILE}" 2>&1 | dos2unix | grep -v 'E: File read error' | head -1)"
-		eval "printf \"${FMT}\" ${VMAP} ${AMAP} ${MEDIA_INFO_1} '${FIELD_ORDER}' ${MEDIA_INFO_2} ${MEDIA_INFO_3} '${SRC_FILE}'"
+		if [ ! "${AMAP}" = "" ];then
+			MEDIA_INFO_3="$("${MEDIAINFO}" --Inform="${INFORM_3}" "${SRC_FILE}" 2>&1 | dos2unix | grep -v 'E: File read error' | head -1)"
+		else
+			MEDIA_INFO_3="'' '' ''"
+		fi
+		eval "printf \"${FMT}\" ${VMAP} \'${AMAP}\' ${MEDIA_INFO_1} '${FIELD_ORDER}' ${MEDIA_INFO_2} ${MEDIA_INFO_3} '${SRC_FILE}'"
 	done
 }
 
@@ -247,6 +252,7 @@ ${VIDEO_FILTER_FPS:+${VIDEO_FILTER_FPS}}"
 	esac
 
 	# AUDIO_DELAY の初期化
+	AUDIO_DELAY=""
 	# DELAY_V, DELAY_SOURCE_V, DELAY_A, DELAY_SOURCE_A のすべてが「空文字」でない場合
 	if [ \( -n "${DELAY_V}" \) -a \( -n "${DELAY_SOURCE_V}" \) -a \
 		\( -n "${DELAY_A}" \) -a \( -n "${DELAY_SOURCE_A}" \) ];then

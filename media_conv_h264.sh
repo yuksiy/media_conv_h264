@@ -353,8 +353,9 @@ fi
 echo
 
 # 音声ストリームの変換
-echo "-I Converting audio stream..."
-CMD_V "\
+if [ ! "${AUDIO_MAP}" = "" ];then
+	echo "-I Converting audio stream..."
+	CMD_V "\
 ${FFMPEG} \
 ${FFMPEG_GLOBAL_OPTIONS:+${FFMPEG_GLOBAL_OPTIONS} }\
 ${FFMPEG_INPUT_OPTIONS:+${FFMPEG_INPUT_OPTIONS} }\
@@ -367,9 +368,12 @@ ${AUDIO_FILTER:+-filter:a:0 \"${AUDIO_FILTER}\" }\
 -ac:a:0 ${AUDIO_CHANNEL} \
 -b:a:0 ${AUDIO_BITRATE} \
 \"${AUDIO_FILE_TMP}\""
-if [ $? -ne 0 ];then
-	echo "-E Command has ended unsuccessfully." 1>&2
-	POST_PROCESS;exit 1
+	if [ $? -ne 0 ];then
+		echo "-E Command has ended unsuccessfully." 1>&2
+		POST_PROCESS;exit 1
+	fi
+else
+	echo "-I AUDIO_MAP not specified, audio stream skipped"
 fi
 echo
 
@@ -377,14 +381,11 @@ echo
 echo "-I Muxing video/audio stream..."
 case "${DEST_FILE_TYPE}" in
 mkv)
-	CMD_V "\
-${MKVMERGE} \
-${MKVMERGE_GLOBAL_OPTIONS:+${MKVMERGE_GLOBAL_OPTIONS} }\
--o \"${DEST_FILE}\" \
-\"${VIDEO_FILE_TMP}\" \
-${AUDIO_DELAY:+-y 0:${AUDIO_DELAY} }\
-${AUDIO_LANGUAGE:+--language 0:${AUDIO_LANGUAGE} }\
-\"${AUDIO_FILE_TMP}\""
+	if [ ! "${AUDIO_MAP}" = "" ];then
+		CMD_V "${MKVMERGE} ${MKVMERGE_GLOBAL_OPTIONS:+${MKVMERGE_GLOBAL_OPTIONS} }-o \"${DEST_FILE}\" \"${VIDEO_FILE_TMP}\" ${AUDIO_DELAY:+-y 0:${AUDIO_DELAY} }${AUDIO_LANGUAGE:+--language 0:${AUDIO_LANGUAGE} }\"${AUDIO_FILE_TMP}\""
+	else
+		CMD_V "${MKVMERGE} ${MKVMERGE_GLOBAL_OPTIONS:+${MKVMERGE_GLOBAL_OPTIONS} }-o \"${DEST_FILE}\" \"${VIDEO_FILE_TMP}\""
+	fi
 	;;
 esac
 if [ $? -ne 0 ];then
