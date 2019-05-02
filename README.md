@@ -56,4 +56,4 @@ MIT License. See [LICENSE](https://github.com/yuksiy/media_conv_h264/blob/master
 
 ## Copyright
 
-Copyright (c) 2017 Yukio Shiiya
+Copyright (c) 2017-2019 Yukio Shiiya

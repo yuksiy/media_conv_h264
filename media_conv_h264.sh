@@ -6,7 +6,7 @@
 #   構文
 #     USAGE 参照
 #
-#   Copyright (c) 2017 Yukio Shiiya
+#   Copyright (c) 2017-2019 Yukio Shiiya
 #
 #   This software is released under the MIT License.
 #   https://opensource.org/licenses/MIT
